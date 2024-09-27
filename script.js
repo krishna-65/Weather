@@ -44,22 +44,30 @@ function getfromSessionStorage()
     else
     {
         const coordinates = JSON.parse(localCoordinates);
+        console.log(coordinates);
         fetchUserWeatherInfo(coordinates);
+        
     }
 }
 
 async function fetchUserWeatherInfo(coordinates)
 {
     const {lat, lon} = coordinates;
+    console.log(lat,lon);
     grantAccessContainer.classList.remove('active');
     loadingScreen.classList.add('active')
 
     try{
         const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&unit=metric`);
+
         const data = await response.json();
+        console.log(data);
+           const kelvinTemp = data.main.temp;  // Temperature in Kelvin
+        const celsiusTemp = kelvinTemp - 273.15;
+        console.log(data); 
         loadingScreen.classList.remove('active');
         userInfoContainer.classList.add('active');
-        renderWeatherInfo(data);
+        renderWeatherInfo(data,celsiusTemp);
 
 
     }
@@ -70,13 +78,14 @@ async function fetchUserWeatherInfo(coordinates)
 }
 
 
-function renderWeatherInfo(weatherInfo)
+function renderWeatherInfo(weatherInfo,celsiusTemp)
 {
     console.log("inside render");
     const cityName = document.querySelector("[data-cityName]");
     const coutryIcon = document.querySelector("[data-countryIcon]");
     const desc = document.querySelector("[data-weatherDesc]");
     const weatherIcon = document.querySelector("[data-weatherIcon]");
+
     const temp = document.querySelector("[data-temp]");
     const windSpeed = document.querySelector("[data-windspeed]");
     const humidity = document.querySelector("[data-humidity]");
@@ -89,6 +98,9 @@ function renderWeatherInfo(weatherInfo)
     desc.innerText = weatherInfo?.weather?.[0]?.description;
     console.log("middle render");
     weatherIcon.src = `https://openweathermap.org/img/w/${weatherInfo?.weather?.[0]?.icon}.png`;
+    if(celsiusTemp)
+        temp.innerText = `${celsiusTemp.toFixed(2)} °C`
+    else
     temp.innerText = `${weatherInfo?.main?.temp} °C`;
     windSpeed.innerText = `${weatherInfo?.wind?.speed} m/s`;
     humidity.innerText = `${weatherInfo?.main?.humidity} %`;
@@ -167,7 +179,7 @@ async function fetchSearchWeatherInfo(city)
     }
     catch(err)
     {
-
+            console.error(err);
     }
 }
 
